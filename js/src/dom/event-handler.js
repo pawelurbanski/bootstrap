@@ -1,12 +1,11 @@
 /**
  * --------------------------------------------------------------------------
- * Bootstrap (v4.3.1): dom/event-handler.js
- * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+ * Bootstrap (v5.0.0-alpha3): dom/event-handler.js
+ * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
  * --------------------------------------------------------------------------
  */
 
 import { getjQuery } from '../util/index'
-import { createCustomEvent, defaultPreventedPreservedOnDispatch } from './polyfill'
 
 /**
  * ------------------------------------------------------------------------
@@ -14,10 +13,8 @@ import { createCustomEvent, defaultPreventedPreservedOnDispatch } from './polyfi
  * ------------------------------------------------------------------------
  */
 
-const $ = getjQuery()
 const namespaceRegex = /[^.]*(?=\..*)\.|.*/
 const stripNameRegex = /\..*/
-const keyEventRegex = /^key/
 const stripUidRegex = /::\d+$/
 const eventRegistry = {} // Events storage
 let uidEvent = 1
@@ -93,18 +90,10 @@ function getEvent(element) {
   return eventRegistry[uid]
 }
 
-function fixEvent(event, element) {
-  // Add which for key events
-  if (event.which === null && keyEventRegex.test(event.type)) {
-    event.which = event.charCode === null ? event.keyCode : event.charCode
-  }
-
-  event.delegateTarget = element
-}
-
 function bootstrapHandler(element, fn) {
   return function handler(event) {
-    fixEvent(event, element)
+    event.delegateTarget = element
+
     if (handler.oneOff) {
       EventHandler.off(element, event.type, fn)
     }
@@ -120,7 +109,7 @@ function bootstrapDelegationHandler(element, selector, fn) {
     for (let { target } = event; target && target !== this; target = target.parentNode) {
       for (let i = domElements.length; i--;) {
         if (domElements[i] === target) {
-          fixEvent(event, target)
+          event.delegateTarget = target
 
           if (handler.oneOff) {
             EventHandler.off(element, event.type, fn)
@@ -220,14 +209,13 @@ function removeHandler(element, events, typeEvent, handler, delegationSelector) 
 function removeNamespacedHandlers(element, events, typeEvent, namespace) {
   const storeElementEvent = events[typeEvent] || {}
 
-  Object.keys(storeElementEvent)
-    .forEach(handlerKey => {
-      if (handlerKey.indexOf(namespace) > -1) {
-        const event = storeElementEvent[handlerKey]
+  Object.keys(storeElementEvent).forEach(handlerKey => {
+    if (handlerKey.indexOf(namespace) > -1) {
+      const event = storeElementEvent[handlerKey]
 
-        removeHandler(element, events, typeEvent, event.originalHandler, event.delegationSelector)
-      }
-    })
+      removeHandler(element, events, typeEvent, event.originalHandler, event.delegationSelector)
+    }
+  })
 }
 
 const EventHandler = {
@@ -260,23 +248,21 @@ const EventHandler = {
     }
 
     if (isNamespace) {
-      Object.keys(events)
-        .forEach(elementEvent => {
-          removeNamespacedHandlers(element, events, elementEvent, originalTypeEvent.slice(1))
-        })
+      Object.keys(events).forEach(elementEvent => {
+        removeNamespacedHandlers(element, events, elementEvent, originalTypeEvent.slice(1))
+      })
     }
 
     const storeElementEvent = events[typeEvent] || {}
-    Object.keys(storeElementEvent)
-      .forEach(keyHandlers => {
-        const handlerKey = keyHandlers.replace(stripUidRegex, '')
+    Object.keys(storeElementEvent).forEach(keyHandlers => {
+      const handlerKey = keyHandlers.replace(stripUidRegex, '')
 
-        if (!inNamespace || originalTypeEvent.indexOf(handlerKey) > -1) {
-          const event = storeElementEvent[keyHandlers]
+      if (!inNamespace || originalTypeEvent.indexOf(handlerKey) > -1) {
+        const event = storeElementEvent[keyHandlers]
 
-          removeHandler(element, events, typeEvent, event.originalHandler, event.delegationSelector)
-        }
-      })
+        removeHandler(element, events, typeEvent, event.originalHandler, event.delegationSelector)
+      }
+    })
   },
 
   trigger(element, event, args) {
@@ -284,6 +270,7 @@ const EventHandler = {
       return null
     }
 
+    const $ = getjQuery()
     const typeEvent = event.replace(stripNameRegex, '')
     const inNamespace = event !== typeEvent
     const isNative = nativeEvents.indexOf(typeEvent) > -1
@@ -307,32 +294,25 @@ const EventHandler = {
       evt = document.createEvent('HTMLEvents')
       evt.initEvent(typeEvent, bubbles, true)
     } else {
-      evt = createCustomEvent(event, {
+      evt = new CustomEvent(event, {
         bubbles,
         cancelable: true
       })
     }
 
-    // merge custom informations in our event
+    // merge custom information in our event
     if (typeof args !== 'undefined') {
-      Object.keys(args)
-        .forEach(key => {
-          Object.defineProperty(evt, key, {
-            get() {
-              return args[key]
-            }
-          })
+      Object.keys(args).forEach(key => {
+        Object.defineProperty(evt, key, {
+          get() {
+            return args[key]
+          }
         })
+      })
     }
 
     if (defaultPrevented) {
       evt.preventDefault()
-
-      if (!defaultPreventedPreservedOnDispatch) {
-        Object.defineProperty(evt, 'defaultPrevented', {
-          get: () => true
-        })
-      }
     }
 
     if (nativeDispatch) {

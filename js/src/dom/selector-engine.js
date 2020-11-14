@@ -1,12 +1,9 @@
 /**
  * --------------------------------------------------------------------------
- * Bootstrap (v4.3.1): dom/selector-engine.js
- * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+ * Bootstrap (v5.0.0-alpha3): dom/selector-engine.js
+ * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
  * --------------------------------------------------------------------------
  */
-
-import { find as findFn, findOne, matches, closest } from './polyfill'
-import { makeArray } from '../util/index'
 
 /**
  * ------------------------------------------------------------------------
@@ -18,21 +15,21 @@ const NODE_TEXT = 3
 
 const SelectorEngine = {
   matches(element, selector) {
-    return matches.call(element, selector)
+    return element.matches(selector)
   },
 
   find(selector, element = document.documentElement) {
-    return findFn.call(element, selector)
+    return [].concat(...Element.prototype.querySelectorAll.call(element, selector))
   },
 
   findOne(selector, element = document.documentElement) {
-    return findOne.call(element, selector)
+    return Element.prototype.querySelector.call(element, selector)
   },
 
   children(element, selector) {
-    const children = makeArray(element.children)
+    const children = [].concat(...element.children)
 
-    return children.filter(child => this.matches(child, selector))
+    return children.filter(child => child.matches(selector))
   },
 
   parents(element, selector) {
@@ -51,19 +48,29 @@ const SelectorEngine = {
     return parents
   },
 
-  closest(element, selector) {
-    return closest.call(element, selector)
-  },
-
   prev(element, selector) {
     let previous = element.previousElementSibling
 
     while (previous) {
-      if (this.matches(previous, selector)) {
+      if (previous.matches(selector)) {
         return [previous]
       }
 
       previous = previous.previousElementSibling
+    }
+
+    return []
+  },
+
+  next(element, selector) {
+    let next = element.nextElementSibling
+
+    while (next) {
+      if (this.matches(next, selector)) {
+        return [next]
+      }
+
+      next = next.nextElementSibling
     }
 
     return []

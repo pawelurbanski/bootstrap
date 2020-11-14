@@ -1,5 +1,5 @@
 import Alert from '../../src/alert'
-import { makeArray, getTransitionDurationFromElement } from '../../src/util/index'
+import { getTransitionDurationFromElement } from '../../src/util/index'
 
 /** Test helpers */
 import { getFixture, clearFixture, jQueryMock } from '../helpers/fixture'
@@ -23,27 +23,27 @@ describe('Alert', () => {
     it('should close an alert without instantiating it manually', () => {
       fixtureEl.innerHTML = [
         '<div class="alert">',
-        '  <button type="button" data-dismiss="alert">x</button>',
+        '  <button type="button" data-bs-dismiss="alert">x</button>',
         '</div>'
       ].join('')
 
       const button = document.querySelector('button')
 
       button.click()
-      expect(makeArray(document.querySelectorAll('.alert')).length).toEqual(0)
+      expect(document.querySelectorAll('.alert').length).toEqual(0)
     })
 
     it('should close an alert without instantiating it manually with the parent selector', () => {
       fixtureEl.innerHTML = [
         '<div class="alert">',
-        '  <button type="button" data-target=".alert" data-dismiss="alert">x</button>',
+        '  <button type="button" data-bs-target=".alert" data-bs-dismiss="alert">x</button>',
         '</div>'
       ].join('')
 
       const button = document.querySelector('button')
 
       button.click()
-      expect(makeArray(document.querySelectorAll('.alert')).length).toEqual(0)
+      expect(document.querySelectorAll('.alert').length).toEqual(0)
     })
   })
 
@@ -56,7 +56,7 @@ describe('Alert', () => {
       const alert = new Alert(alertEl)
 
       alertEl.addEventListener('closed.bs.alert', () => {
-        expect(makeArray(document.querySelectorAll('.alert')).length).toEqual(0)
+        expect(document.querySelectorAll('.alert').length).toEqual(0)
         expect(spy).not.toHaveBeenCalled()
         done()
       })
@@ -75,7 +75,7 @@ describe('Alert', () => {
       })
 
       alertEl.addEventListener('closed.bs.alert', () => {
-        expect(makeArray(document.querySelectorAll('.alert')).length).toEqual(0)
+        expect(document.querySelectorAll('.alert').length).toEqual(0)
         done()
       })
 

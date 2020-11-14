@@ -10,52 +10,25 @@
  * For details, see https://creativecommons.org/licenses/by/3.0/.
  */
 
-/* global ClipboardJS: false, anchors: false, bootstrap: false, bsCustomFileInput: false */
+/* global ClipboardJS: false, anchors: false, bootstrap: false */
 
 (function () {
   'use strict'
 
-  function makeArray(list) {
-    return [].slice.call(list)
-  }
-
-  (function () {
-    var checkbox = document.getElementById('flexCheckIndeterminate')
-
-    if (!checkbox) {
-      return
-    }
-
-    checkbox.indeterminate = true
-  })()
-
-  makeArray(document.querySelectorAll('.js-sidenav-group'))
-    .forEach(function (sidenavGroup) {
-      var groupHasLinks = Boolean(sidenavGroup.querySelector('li'))
-      var groupLink = sidenavGroup.querySelector('a')
-
-      if (groupHasLinks) {
-        groupLink.addEventListener('click', function (e) {
-          e.preventDefault()
-          e.target.parentNode.classList.toggle('active')
-        }, true)
-      }
-    })
-
   // Tooltip and popover demos
-  makeArray(document.querySelectorAll('.tooltip-demo'))
+  document.querySelectorAll('.tooltip-demo')
     .forEach(function (tooltip) {
       new bootstrap.Tooltip(tooltip, {
-        selector: '[data-toggle="tooltip"]'
+        selector: '[data-bs-toggle="tooltip"]'
       })
     })
 
-  makeArray(document.querySelectorAll('[data-toggle="popover"]'))
+  document.querySelectorAll('[data-bs-toggle="popover"]')
     .forEach(function (popover) {
       new bootstrap.Popover(popover)
     })
 
-  makeArray(document.querySelectorAll('.toast'))
+  document.querySelectorAll('.toast')
     .forEach(function (toastNode) {
       var toast = new bootstrap.Toast(toastNode, {
         autohide: false
@@ -65,24 +38,24 @@
     })
 
   // Demos within modals
-  makeArray(document.querySelectorAll('.tooltip-test'))
+  document.querySelectorAll('.tooltip-test')
     .forEach(function (tooltip) {
       new bootstrap.Tooltip(tooltip)
     })
 
-  makeArray(document.querySelectorAll('.popover-test'))
+  document.querySelectorAll('.popover-test')
     .forEach(function (popover) {
       new bootstrap.Popover(popover)
     })
 
   // Indeterminate checkbox example
-  makeArray(document.querySelectorAll('.bd-example-indeterminate [type="checkbox"]'))
+  document.querySelectorAll('.bd-example-indeterminate [type="checkbox"]')
     .forEach(function (checkbox) {
       checkbox.indeterminate = true
     })
 
   // Disable empty links in docs examples
-  makeArray(document.querySelectorAll('.bd-content [href="#"]'))
+  document.querySelectorAll('.bd-content [href="#"]')
     .forEach(function (link) {
       link.addEventListener('click', function (e) {
         e.preventDefault()
@@ -93,14 +66,16 @@
   var exampleModal = document.getElementById('exampleModal')
   if (exampleModal) {
     exampleModal.addEventListener('show.bs.modal', function (event) {
-      var button = event.relatedTarget // Button that triggered the modal
-      var recipient = button.getAttribute('data-whatever') // Extract info from data-* attributes
+      // Button that triggered the modal
+      var button = event.relatedTarget
+      // Extract info from data-bs-* attributes
+      var recipient = button.getAttribute('data-bs-whatever')
 
       // Update the modal's content.
       var modalTitle = exampleModal.querySelector('.modal-title')
       var modalBodyInput = exampleModal.querySelector('.modal-body input')
 
-      modalTitle.innerHTML = 'New message to ' + recipient
+      modalTitle.textContent = 'New message to ' + recipient
       modalBodyInput.value = recipient
     })
   }
@@ -118,12 +93,12 @@
 
   // Insert copy to clipboard button before .highlight
   var btnHtml = '<div class="bd-clipboard"><button type="button" class="btn-clipboard" title="Copy to clipboard">Copy</button></div>'
-  makeArray(document.querySelectorAll('figure.highlight, div.highlight'))
+  document.querySelectorAll('div.highlight')
     .forEach(function (element) {
       element.insertAdjacentHTML('beforebegin', btnHtml)
     })
 
-  makeArray(document.querySelectorAll('.btn-clipboard'))
+  document.querySelectorAll('.btn-clipboard')
     .forEach(function (btn) {
       var tooltipBtn = new bootstrap.Tooltip(btn)
 
@@ -144,10 +119,10 @@
   clipboard.on('success', function (e) {
     var tooltipBtn = bootstrap.Tooltip.getInstance(e.trigger)
 
-    e.trigger.setAttribute('data-original-title', 'Copied!')
+    e.trigger.setAttribute('data-bs-original-title', 'Copied!')
     tooltipBtn.show()
 
-    e.trigger.setAttribute('data-original-title', 'Copy to clipboard')
+    e.trigger.setAttribute('data-bs-original-title', 'Copy to clipboard')
     e.clearSelection()
   })
 
@@ -156,22 +131,14 @@
     var fallbackMsg = 'Press ' + modifierKey + 'C to copy'
     var tooltipBtn = bootstrap.Tooltip.getInstance(e.trigger)
 
-    e.trigger.setAttribute('data-original-title', fallbackMsg)
+    e.trigger.setAttribute('data-bs-original-title', fallbackMsg)
     tooltipBtn.show()
 
-    e.trigger.setAttribute('data-original-title', 'Copy to clipboard')
+    e.trigger.setAttribute('data-bs-original-title', 'Copy to clipboard')
   })
 
   anchors.options = {
     icon: '#'
   }
   anchors.add('.bd-content > h2, .bd-content > h3, .bd-content > h4, .bd-content > h5')
-
-  // Wrap inner
-  makeArray(document.querySelectorAll('.bd-content > h2, .bd-content > h3, .bd-content > h4, .bd-content > h5'))
-    .forEach(function (hEl) {
-      hEl.innerHTML = '<span class="bd-content-title">' + hEl.innerHTML + '</span>'
-    })
-
-  bsCustomFileInput.init()
 })()

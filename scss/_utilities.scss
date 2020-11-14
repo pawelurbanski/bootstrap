@@ -16,21 +16,21 @@ $utilities: map-merge(
     ),
     "overflow": (
       property: overflow,
-      values: auto hidden,
+      values: auto hidden visible scroll,
     ),
     "display": (
       responsive: true,
       print: true,
       property: display,
       class: d,
-      values: none inline inline-block block table table-row table-cell flex inline-flex
+      values: inline inline-block block grid table table-row table-cell flex inline-flex none
     ),
     "shadow": (
       property: box-shadow,
       class: shadow,
       values: (
-        sm: $box-shadow-sm,
         null: $box-shadow,
+        sm: $box-shadow-sm,
         lg: $box-shadow-lg,
         none: none,
       )
@@ -38,6 +38,29 @@ $utilities: map-merge(
     "position": (
       property: position,
       values: static relative absolute fixed sticky
+    ),
+    "top": (
+      property: top,
+      values: $position-values
+    ),
+    "bottom": (
+      property: bottom,
+      values: $position-values
+    ),
+    "left": (
+      property: left,
+      values: $position-values
+    ),
+    "right": (
+      property: right,
+      values: $position-values
+    ),
+    "translate-middle": (
+      property: transform,
+      class: translate-middle,
+      values: (
+        null: (translateX(-50%) translateY(-50%))
+      )
     ),
     "border": (
       property: border,
@@ -78,6 +101,11 @@ $utilities: map-merge(
       property: border-color,
       class: border,
       values: map-merge($theme-colors, ("white": $white))
+    ),
+    "border-width": (
+      property: border-width,
+      class: border,
+      values: $border-widths
     ),
     // Sizing utilities
     "width": (
@@ -168,6 +196,12 @@ $utilities: map-merge(
       class: flex,
       values: wrap nowrap wrap-reverse
     ),
+    "gap": (
+      responsive: true,
+      property: gap,
+      class: gap,
+      values: $spacers
+    ),
     "justify-content": (
       responsive: true,
       property: justify-content,
@@ -177,6 +211,7 @@ $utilities: map-merge(
         center: center,
         between: space-between,
         around: space-around,
+        evenly: space-evenly,
       )
     ),
     "align-items": (
@@ -358,8 +393,20 @@ $utilities: map-merge(
       values: $spacers
     ),
     // Text
+    "font-size": (
+      rfs: true,
+      property: font-size,
+      class: fs,
+      values: $font-sizes
+    ),
+    "font-style": (
+      property: font-style,
+      class: fst,
+      values: italic normal
+    ),
     "font-weight": (
       property: font-weight,
+      class: fw,
       values: (
         light: $font-weight-light,
         lighter: $font-weight-lighter,
@@ -416,6 +463,11 @@ $utilities: map-merge(
         )
       )
     ),
+    "gradient": (
+      property: background-image,
+      class: bg,
+      values: (gradient: var(--#{$variable-prefix}gradient))
+    ),
     "white-space": (
       property: white-space,
       class: text,
@@ -428,20 +480,15 @@ $utilities: map-merge(
       property: text-decoration,
       values: none underline line-through
     ),
-    "font-style": (
-      property: font-style,
-      class: font,
-      values: italic normal
-    ),
     "word-wrap": (
-      property: word-wrap,
+      property: word-wrap word-break,
       class: text,
       values: (break: break-word)
     ),
     "font-family": (
       property: font-family,
       class: font,
-      values: (monospace: $font-family-monospace)
+      values: (monospace: var(--#{$variable-prefix}font-monospace))
     ),
     "user-select": (
       property: user-select,
@@ -457,11 +504,12 @@ $utilities: map-merge(
       class: rounded,
       values: (
         null: $border-radius,
-        sm: $border-radius-sm,
-        lg: $border-radius-lg,
-        circle: 50%,
-        pill: $rounded-pill,
         0: 0,
+        1: $border-radius-sm,
+        2: $border-radius,
+        3: $border-radius-lg,
+        circle: 50%,
+        pill: $border-radius-pill
       )
     ),
     "rounded-top": (

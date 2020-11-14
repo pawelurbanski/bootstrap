@@ -6,13 +6,16 @@
 @mixin button-variant(
   $background,
   $border,
-  $color: color-yiq($background),
-  $hover-background: darken($background, 7.5%),
-  $hover-border: darken($border, 10%),
-  $hover-color: color-yiq($hover-background),
-  $active-background: darken($background, 10%),
-  $active-border: darken($border, 12.5%),
-  $active-color: color-yiq($active-background)
+  $color: color-contrast($background),
+  $hover-background: if($color == $color-contrast-light, shade-color($background, 15%), tint-color($background, 15%)),
+  $hover-border: if($color == $color-contrast-light, shade-color($border, 20%), tint-color($border, 10%)),
+  $hover-color: color-contrast($hover-background),
+  $active-background: if($color == $color-contrast-light, shade-color($background, 20%), tint-color($background, 20%)),
+  $active-border: if($color == $color-contrast-light, shade-color($border, 25%), tint-color($border, 10%)),
+  $active-color: color-contrast($active-background),
+  $disabled-background: $background,
+  $disabled-border: $border,
+  $disabled-color: color-contrast($disabled-background)
 ) {
   color: $color;
   @include gradient-bg($background);
@@ -25,19 +28,21 @@
     border-color: $hover-border;
   }
 
-  &:focus,
-  &.focus {
+  .btn-check:focus + &,
+  &:focus {
     color: $hover-color;
     @include gradient-bg($hover-background);
     border-color: $hover-border;
-    // Avoid using mixin so we can pass custom focus shadow properly
     @if $enable-shadows {
-      box-shadow: $btn-box-shadow, 0 0 0 $btn-focus-width rgba(mix($color, $border, 15%), .5);
+      @include box-shadow($btn-box-shadow, 0 0 0 $btn-focus-width rgba(mix($color, $border, 15%), .5));
     } @else {
+      // Avoid using mixin so we can pass custom focus shadow properly
       box-shadow: 0 0 0 $btn-focus-width rgba(mix($color, $border, 15%), .5);
     }
   }
 
+  .btn-check:checked + &,
+  .btn-check:active + &,
   &:active,
   &.active,
   .show > &.dropdown-toggle {
@@ -48,10 +53,10 @@
     border-color: $active-border;
 
     &:focus {
-      // Avoid using mixin so we can pass custom focus shadow properly
-      @if $enable-shadows and $btn-active-box-shadow != none {
-        box-shadow: $btn-active-box-shadow, 0 0 0 $btn-focus-width rgba(mix($color, $border, 15%), .5);
+      @if $enable-shadows {
+        @include box-shadow($btn-active-box-shadow, 0 0 0 $btn-focus-width rgba(mix($color, $border, 15%), .5));
       } @else {
+        // Avoid using mixin so we can pass custom focus shadow properly
         box-shadow: 0 0 0 $btn-focus-width rgba(mix($color, $border, 15%), .5);
       }
     }
@@ -59,20 +64,20 @@
 
   &:disabled,
   &.disabled {
-    color: $color;
-    background-color: $background;
+    color: $disabled-color;
+    background-color: $disabled-background;
     // Remove CSS gradients if they're enabled
     background-image: if($enable-gradients, none, null);
-    border-color: $border;
+    border-color: $disabled-border;
   }
 }
 
 @mixin button-outline-variant(
   $color,
-  $color-hover: color-yiq($color),
+  $color-hover: color-contrast($color),
   $active-background: $color,
   $active-border: $color,
-  $active-color: color-yiq($active-background)
+  $active-color: color-contrast($active-background)
 ) {
   color: $color;
   border-color: $color;
@@ -83,23 +88,25 @@
     border-color: $active-border;
   }
 
-  &:focus,
-  &.focus {
+  .btn-check:focus + &,
+  &:focus {
     box-shadow: 0 0 0 $btn-focus-width rgba($color, .5);
   }
 
+  .btn-check:checked + &,
+  .btn-check:active + &,
   &:active,
   &.active,
-  .show > &.dropdown-toggle {
+  &.dropdown-toggle.show {
     color: $active-color;
     background-color: $active-background;
     border-color: $active-border;
 
     &:focus {
-      // Avoid using mixin so we can pass custom focus shadow properly
-      @if $enable-shadows and $btn-active-box-shadow != none {
-        box-shadow: $btn-active-box-shadow, 0 0 0 $btn-focus-width rgba($color, .5);
+      @if $enable-shadows {
+        @include box-shadow($btn-active-box-shadow, 0 0 0 $btn-focus-width rgba($color, .5));
       } @else {
+        // Avoid using mixin so we can pass custom focus shadow properly
         box-shadow: 0 0 0 $btn-focus-width rgba($color, .5);
       }
     }

@@ -1,36 +1,31 @@
+#!/usr/bin/env node
+
 /*!
  * Script to build our plugins to use them separately.
  * Copyright 2020 The Bootstrap Authors
  * Copyright 2020 Twitter, Inc.
- * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+ * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
  */
 
 'use strict'
 
 const path = require('path')
 const rollup = require('rollup')
-const babel = require('rollup-plugin-babel')
+const { babel } = require('@rollup/plugin-babel')
 const banner = require('./banner.js')
 
 const plugins = [
   babel({
     // Only transpile our source code
     exclude: 'node_modules/**',
-    // Include only required helpers
-    externalHelpersWhitelist: [
-      'defineProperties',
-      'createClass',
-      'inheritsLoose',
-      'defineProperty',
-      'objectSpread2'
-    ]
+    // Inline the required helpers in each file
+    babelHelpers: 'inline'
   })
 ]
 const bsPlugins = {
   Data: path.resolve(__dirname, '../js/src/dom/data.js'),
   EventHandler: path.resolve(__dirname, '../js/src/dom/event-handler.js'),
   Manipulator: path.resolve(__dirname, '../js/src/dom/manipulator.js'),
-  Polyfill: path.resolve(__dirname, '../js/src/dom/polyfill.js'),
   SelectorEngine: path.resolve(__dirname, '../js/src/dom/selector-engine.js'),
   Alert: path.resolve(__dirname, '../js/src/alert.js'),
   Button: path.resolve(__dirname, '../js/src/button.js'),
@@ -59,7 +54,7 @@ const defaultPluginConfig = {
   }
 }
 
-function getConfigByPluginKey(pluginKey) {
+const getConfigByPluginKey = pluginKey => {
   if (
     pluginKey === 'Data' ||
     pluginKey === 'Manipulator' ||
@@ -70,10 +65,7 @@ function getConfigByPluginKey(pluginKey) {
     pluginKey === 'Sanitizer'
   ) {
     return {
-      external: [bsPlugins.Polyfill],
-      globals: {
-        [bsPlugins.Polyfill]: 'Polyfill'
-      }
+      external: []
     }
   }
 
@@ -142,11 +134,10 @@ const domObjects = [
   'Data',
   'EventHandler',
   'Manipulator',
-  'Polyfill',
   'SelectorEngine'
 ]
 
-function build(plugin) {
+const build = async plugin => {
   console.log(`Building ${plugin} plugin...`)
 
   const { external, globals } = getConfigByPluginKey(plugin)
@@ -161,23 +152,32 @@ function build(plugin) {
     pluginPath = `${rootPath}/dom/`
   }
 
-  rollup.rollup({
+  const bundle = await rollup.rollup({
     input: bsPlugins[plugin],
     plugins,
     external
-  }).then(bundle => {
-    bundle.write({
-      banner: banner(pluginFilename),
-      format: 'umd',
-      name: plugin,
-      sourcemap: true,
-      globals,
-      file: path.resolve(__dirname, `${pluginPath}/${pluginFilename}`)
-    })
-      .then(() => console.log(`Building ${plugin} plugin... Done!`))
-      .catch(error => console.error(`${plugin}: ${error}`))
   })
+
+  await bundle.write({
+    banner: banner(pluginFilename),
+    format: 'umd',
+    name: plugin,
+    sourcemap: true,
+    globals,
+    file: path.resolve(__dirname, `${pluginPath}/${pluginFilename}`)
+  })
+
+  console.log(`Building ${plugin} plugin... Done!`)
 }
 
-Object.keys(bsPlugins)
-  .forEach(plugin => build(plugin))
+const main = async () => {
+  try {
+    await Promise.all(Object.keys(bsPlugins).map(plugin => build(plugin)))
+  } catch (error) {
+    console.error(error)
+
+    process.exit(1)
+  }
+}
+
+main()

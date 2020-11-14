@@ -5,12 +5,11 @@ import EventHandler from '../../src/dom/event-handler'
 import { getFixture, clearFixture, createEvent, jQueryMock } from '../helpers/fixture'
 
 describe('Carousel', () => {
-  const { Simulator, PointerEvent, MSPointerEvent } = window
-  const originWinPointerEvent = PointerEvent || MSPointerEvent
-  const supportPointerEvent = Boolean(PointerEvent || MSPointerEvent)
+  const { Simulator, PointerEvent } = window
+  const originWinPointerEvent = PointerEvent
+  const supportPointerEvent = Boolean(PointerEvent)
 
-  window.MSPointerEvent = null
-  const cssStyleCarousel = '.carousel.pointer-event { -ms-touch-action: none; touch-action: none; }'
+  const cssStyleCarousel = '.carousel.pointer-event { touch-action: none; }'
 
   const stylesCarousel = document.createElement('style')
   stylesCarousel.type = 'text/css'
@@ -71,10 +70,10 @@ describe('Carousel', () => {
         done()
       })
 
-      const keyDown = createEvent('keydown')
-      keyDown.which = 39
+      const keydown = createEvent('keydown')
+      keydown.key = 'ArrowRight'
 
-      carouselEl.dispatchEvent(keyDown)
+      carouselEl.dispatchEvent(keydown)
     })
 
     it('should go to previous item if left arrow key is pressed', done => {
@@ -101,10 +100,10 @@ describe('Carousel', () => {
         done()
       })
 
-      const keyDown = createEvent('keydown')
-      keyDown.which = 37
+      const keydown = createEvent('keydown')
+      keydown.key = 'ArrowLeft'
 
-      carouselEl.dispatchEvent(keyDown)
+      carouselEl.dispatchEvent(keydown)
     })
 
     it('should not prevent keydown if key is not ARROW_LEFT or ARROW_RIGHT', done => {
@@ -131,10 +130,10 @@ describe('Carousel', () => {
         done()
       })
 
-      const keyDown = createEvent('keydown')
-      keyDown.which = 40
+      const keydown = createEvent('keydown')
+      keydown.key = 'ArrowDown'
 
-      carouselEl.dispatchEvent(keyDown)
+      carouselEl.dispatchEvent(keydown)
     })
 
     it('should ignore keyboard events within <input>s and <textarea>s', () => {
@@ -142,7 +141,7 @@ describe('Carousel', () => {
         '<div id="myCarousel" class="carousel slide">',
         '  <div class="carousel-inner">',
         '    <div class="carousel-item active">',
-        '      <input type="text" />',
+        '      <input type="text">',
         '      <textarea></textarea>',
         '    </div>',
         '    <div class="carousel-item"></div>',
@@ -158,34 +157,34 @@ describe('Carousel', () => {
         keyboard: true
       })
 
-      const spyKeyDown = spyOn(carousel, '_keydown').and.callThrough()
+      const spyKeydown = spyOn(carousel, '_keydown').and.callThrough()
       const spyPrev = spyOn(carousel, 'prev')
       const spyNext = spyOn(carousel, 'next')
 
-      const keyDown = createEvent('keydown', { bubbles: true, cancelable: true })
-      keyDown.which = 39
-      Object.defineProperty(keyDown, 'target', {
+      const keydown = createEvent('keydown', { bubbles: true, cancelable: true })
+      keydown.key = 'ArrowRight'
+      Object.defineProperty(keydown, 'target', {
         value: input,
         writable: true,
         configurable: true
       })
 
-      input.dispatchEvent(keyDown)
+      input.dispatchEvent(keydown)
 
-      expect(spyKeyDown).toHaveBeenCalled()
+      expect(spyKeydown).toHaveBeenCalled()
       expect(spyPrev).not.toHaveBeenCalled()
       expect(spyNext).not.toHaveBeenCalled()
 
-      spyKeyDown.calls.reset()
+      spyKeydown.calls.reset()
       spyPrev.calls.reset()
       spyNext.calls.reset()
 
-      Object.defineProperty(keyDown, 'target', {
+      Object.defineProperty(keydown, 'target', {
         value: textarea
       })
-      textarea.dispatchEvent(keyDown)
+      textarea.dispatchEvent(keydown)
 
-      expect(spyKeyDown).toHaveBeenCalled()
+      expect(spyKeydown).toHaveBeenCalled()
       expect(spyPrev).not.toHaveBeenCalled()
       expect(spyNext).not.toHaveBeenCalled()
     })
@@ -314,7 +313,7 @@ describe('Carousel', () => {
       Simulator.setType('pointer')
 
       fixtureEl.innerHTML = [
-        '<div class="carousel" data-interval="false">',
+        '<div class="carousel" data-bs-interval="false">',
         '  <div class="carousel-inner">',
         '    <div id="item" class="carousel-item">',
         '      <img alt="">',
@@ -358,7 +357,7 @@ describe('Carousel', () => {
       Simulator.setType('pointer')
 
       fixtureEl.innerHTML = [
-        '<div class="carousel" data-interval="false">',
+        '<div class="carousel" data-bs-interval="false">',
         '  <div class="carousel-inner">',
         '    <div id="item" class="carousel-item active">',
         '      <img alt="">',
@@ -397,7 +396,7 @@ describe('Carousel', () => {
       document.documentElement.ontouchstart = () => {}
 
       fixtureEl.innerHTML = [
-        '<div class="carousel" data-interval="false">',
+        '<div class="carousel" data-bs-interval="false">',
         '  <div class="carousel-inner">',
         '    <div id="item" class="carousel-item">',
         '      <img alt="">',
@@ -435,7 +434,7 @@ describe('Carousel', () => {
       document.documentElement.ontouchstart = () => {}
 
       fixtureEl.innerHTML = [
-        '<div class="carousel" data-interval="false">',
+        '<div class="carousel" data-bs-interval="false">',
         '  <div class="carousel-inner">',
         '    <div id="item" class="carousel-item active">',
         '      <img alt="">',
@@ -473,7 +472,7 @@ describe('Carousel', () => {
       clearPointerEvents()
       document.documentElement.ontouchstart = () => {}
 
-      fixtureEl.innerHTML = '<div class="carousel" data-interval="false"></div>'
+      fixtureEl.innerHTML = '<div class="carousel" data-bs-interval="false"></div>'
 
       const carouselEl = fixtureEl.querySelector('.carousel')
       const carousel = new Carousel(carouselEl)
@@ -637,40 +636,37 @@ describe('Carousel', () => {
       carousel.next()
     })
 
-    it('should get interval from data attribute in individual item', () => {
+    it('should update the active element to the next item before sliding', () => {
       fixtureEl.innerHTML = [
         '<div id="myCarousel" class="carousel slide">',
         '  <div class="carousel-inner">',
         '    <div class="carousel-item active">item 1</div>',
-        '    <div class="carousel-item" data-interval="7">item 2</div>',
+        '    <div id="secondItem" class="carousel-item">item 2</div>',
         '    <div class="carousel-item">item 3</div>',
         '  </div>',
         '</div>'
       ].join('')
 
       const carouselEl = fixtureEl.querySelector('#myCarousel')
-      const carousel = new Carousel(carouselEl, {
-        interval: 1814
-      })
-
-      expect(carousel._config.interval).toEqual(1814)
+      const secondItemEl = fixtureEl.querySelector('#secondItem')
+      const carousel = new Carousel(carouselEl)
 
       carousel.next()
 
-      expect(carousel._config.interval).toEqual(7)
+      expect(carousel._activeElement).toEqual(secondItemEl)
     })
 
     it('should update indicators if present', done => {
       fixtureEl.innerHTML = [
         '<div id="myCarousel" class="carousel slide">',
         '  <ol class="carousel-indicators">',
-        '    <li data-target="#myCarousel" data-slide-to="0" class="active"></li>',
-        '    <li id="secondIndicator" data-target="#myCarousel" data-slide-to="1"></li>',
-        '    <li data-target="#myCarousel" data-slide-to="2"></li>',
+        '    <li data-bs-target="#myCarousel" data-bs-slide-to="0" class="active"></li>',
+        '    <li id="secondIndicator" data-bs-target="#myCarousel" data-bs-slide-to="1"></li>',
+        '    <li data-bs-target="#myCarousel" data-bs-slide-to="2"></li>',
         '  </ol>',
         '  <div class="carousel-inner">',
         '    <div class="carousel-item active">item 1</div>',
-        '    <div class="carousel-item" data-interval="7">item 2</div>',
+        '    <div class="carousel-item" data-bs-interval="7">item 2</div>',
         '    <div class="carousel-item">item 3</div>',
         '  </div>',
         '</div>'
@@ -693,7 +689,7 @@ describe('Carousel', () => {
     it('should not call next when the page is not visible', () => {
       fixtureEl.innerHTML = [
         '<div style="display: none;">',
-        '  <div class="carousel" data-interval="false"></div>',
+        '  <div class="carousel" data-bs-interval="false"></div>',
         '</div>'
       ].join('')
 
@@ -877,6 +873,35 @@ describe('Carousel', () => {
       expect(window.setInterval).toHaveBeenCalled()
       expect(window.clearInterval).toHaveBeenCalled()
     })
+
+    it('should get interval from data attribute on the active item element', () => {
+      fixtureEl.innerHTML = [
+        '<div id="myCarousel" class="carousel slide">',
+        '  <div class="carousel-inner">',
+        '    <div class="carousel-item active" data-bs-interval="7">item 1</div>',
+        '    <div id="secondItem" class="carousel-item" data-bs-interval="9385">item 2</div>',
+        '    <div class="carousel-item">item 3</div>',
+        '  </div>',
+        '</div>'
+      ].join('')
+
+      const carouselEl = fixtureEl.querySelector('#myCarousel')
+      const secondItemEl = fixtureEl.querySelector('#secondItem')
+      const carousel = new Carousel(carouselEl, {
+        interval: 1814
+      })
+
+      expect(carousel._config.interval).toEqual(1814)
+
+      carousel.cycle()
+
+      expect(carousel._config.interval).toEqual(7)
+
+      carousel._activeElement = secondItemEl
+      carousel.cycle()
+
+      expect(carousel._config.interval).toEqual(9385)
+    })
   })
 
   describe('to', () => {
@@ -933,7 +958,7 @@ describe('Carousel', () => {
         '<div id="myCarousel" class="carousel slide">',
         '  <div class="carousel-inner">',
         '    <div class="carousel-item active">item 1</div>',
-        '    <div class="carousel-item" data-interval="7">item 2</div>',
+        '    <div class="carousel-item" data-bs-interval="7">item 2</div>',
         '    <div class="carousel-item">item 3</div>',
         '  </div>',
         '</div>'
@@ -960,7 +985,7 @@ describe('Carousel', () => {
         '<div id="myCarousel" class="carousel slide">',
         '  <div class="carousel-inner">',
         '    <div class="carousel-item active">item 1</div>',
-        '    <div class="carousel-item" data-interval="7">item 2</div>',
+        '    <div class="carousel-item" data-bs-interval="7">item 2</div>',
         '    <div class="carousel-item">item 3</div>',
         '  </div>',
         '</div>'
@@ -985,7 +1010,7 @@ describe('Carousel', () => {
         '<div id="myCarousel" class="carousel slide">',
         '  <div class="carousel-inner">',
         '    <div class="carousel-item active">item 1</div>',
-        '    <div class="carousel-item" data-interval="7">item 2</div>',
+        '    <div class="carousel-item" data-bs-interval="7">item 2</div>',
         '    <div class="carousel-item">item 3</div>',
         '  </div>',
         '</div>'
@@ -1020,7 +1045,7 @@ describe('Carousel', () => {
         '<div id="myCarousel" class="carousel slide">',
         '  <div class="carousel-inner">',
         '    <div class="carousel-item active">item 1</div>',
-        '    <div class="carousel-item" data-interval="7">item 2</div>',
+        '    <div class="carousel-item" data-bs-interval="7">item 2</div>',
         '    <div class="carousel-item">item 3</div>',
         '  </div>',
         '</div>'
@@ -1100,8 +1125,8 @@ describe('Carousel', () => {
   })
 
   describe('data-api', () => {
-    it('should init carousels with data-ride="carousel" on load', () => {
-      fixtureEl.innerHTML = '<div data-ride="carousel"></div>'
+    it('should init carousels with data-bs-ride="carousel" on load', () => {
+      fixtureEl.innerHTML = '<div data-bs-ride="carousel"></div>'
 
       const carouselEl = fixtureEl.querySelector('div')
       const loadEvent = createEvent('load')
@@ -1119,8 +1144,8 @@ describe('Carousel', () => {
         '    <div id="item2" class="carousel-item">item 2</div>',
         '    <div class="carousel-item">item 3</div>',
         '  </div>',
-        '  <div class="carousel-control-prev" data-target="#myCarousel" role="button" data-slide="prev"></div>',
-        '  <div id="next" class="carousel-control-next" data-target="#myCarousel" role="button" data-slide="next"></div>',
+        '  <div class="carousel-control-prev" data-bs-target="#myCarousel" role="button" data-bs-slide="prev"></div>',
+        '  <div id="next" class="carousel-control-next" data-bs-target="#myCarousel" role="button" data-bs-slide="next"></div>',
         '</div>'
       ].join('')
 
@@ -1135,7 +1160,7 @@ describe('Carousel', () => {
       }, 10)
     })
 
-    it('should create carousel and go to the next slide on click with data-slide-to', done => {
+    it('should create carousel and go to the next slide on click with data-bs-slide-to', done => {
       fixtureEl.innerHTML = [
         '<div id="myCarousel" class="carousel slide">',
         '  <div class="carousel-inner">',
@@ -1143,7 +1168,7 @@ describe('Carousel', () => {
         '    <div id="item2" class="carousel-item">item 2</div>',
         '    <div class="carousel-item">item 3</div>',
         '  </div>',
-        '  <div id="next" data-target="#myCarousel" data-slide-to="1"></div>',
+        '  <div id="next" data-bs-target="#myCarousel" data-bs-slide-to="1"></div>',
         '</div>'
       ].join('')
 
@@ -1166,8 +1191,8 @@ describe('Carousel', () => {
         '    <div class="carousel-item">item 2</div>',
         '    <div class="carousel-item">item 3</div>',
         '  </div>',
-        '  <div class="carousel-control-prev" data-target="#myCarousel" role="button" data-slide="prev"></div>',
-        '  <div id="next" class="carousel-control-next" role="button" data-slide="next"></div>',
+        '  <div class="carousel-control-prev" data-bs-target="#myCarousel" role="button" data-bs-slide="prev"></div>',
+        '  <div id="next" class="carousel-control-next" role="button" data-bs-slide="next"></div>',
         '</div>'
       ].join('')
 
@@ -1186,8 +1211,8 @@ describe('Carousel', () => {
         '    <div id="item2" class="carousel-item">item 2</div>',
         '    <div class="carousel-item">item 3</div>',
         '  </div>',
-        '  <div class="carousel-control-prev" data-target="#myCarousel" role="button" data-slide="prev"></div>',
-        '  <div id="next" class="carousel-control-next" data-target="#myCarousel" role="button" data-slide="next"></div>',
+        '  <div class="carousel-control-prev" data-bs-target="#myCarousel" role="button" data-bs-slide="prev"></div>',
+        '  <div id="next" class="carousel-control-next" data-bs-target="#myCarousel" role="button" data-bs-slide="next"></div>',
         '</div>'
       ].join('')
 

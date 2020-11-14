@@ -24,9 +24,9 @@ describe('Util', () => {
   })
 
   describe('getSelectorFromElement', () => {
-    it('should get selector from data-target', () => {
+    it('should get selector from data-bs-target', () => {
       fixtureEl.innerHTML = [
-        '<div id="test" data-target=".target"></div>',
+        '<div id="test" data-bs-target=".target"></div>',
         '<div class="target"></div>'
       ].join('')
 
@@ -35,7 +35,7 @@ describe('Util', () => {
       expect(Util.getSelectorFromElement(testEl)).toEqual('.target')
     })
 
-    it('should get selector from href if no data-target set', () => {
+    it('should get selector from href if no data-bs-target set', () => {
       fixtureEl.innerHTML = [
         '<a id="test" href=".target"></a>',
         '<div class="target"></div>'
@@ -46,9 +46,9 @@ describe('Util', () => {
       expect(Util.getSelectorFromElement(testEl)).toEqual('.target')
     })
 
-    it('should get selector from href if data-target equal to #', () => {
+    it('should get selector from href if data-bs-target equal to #', () => {
       fixtureEl.innerHTML = [
-        '<a id="test" data-target="#" href=".target"></a>',
+        '<a id="test" data-bs-target="#" href=".target"></a>',
         '<div class="target"></div>'
       ].join('')
 
@@ -75,9 +75,9 @@ describe('Util', () => {
   })
 
   describe('getElementFromSelector', () => {
-    it('should get element from data-target', () => {
+    it('should get element from data-bs-target', () => {
       fixtureEl.innerHTML = [
-        '<div id="test" data-target=".target"></div>',
+        '<div id="test" data-bs-target=".target"></div>',
         '<div class="target"></div>'
       ].join('')
 
@@ -86,7 +86,7 @@ describe('Util', () => {
       expect(Util.getElementFromSelector(testEl)).toEqual(fixtureEl.querySelector('.target'))
     })
 
-    it('should get element from href if no data-target set', () => {
+    it('should get element from href if no data-bs-target set', () => {
       fixtureEl.innerHTML = [
         '<a id="test" href=".target"></a>',
         '<div class="target"></div>'
@@ -198,8 +198,9 @@ describe('Util', () => {
   })
 
   describe('typeCheckConfig', () => {
+    const namePlugin = 'collapse'
+
     it('should check type of the config object', () => {
-      const namePlugin = 'collapse'
       const defaultType = {
         toggle: 'boolean',
         parent: '(string|element)'
@@ -213,19 +214,33 @@ describe('Util', () => {
         Util.typeCheckConfig(namePlugin, config, defaultType)
       }).toThrow(new Error('COLLAPSE: Option "parent" provided type "number" but expected type "(string|element)".'))
     })
-  })
 
-  describe('makeArray', () => {
-    it('should convert node list to array', () => {
-      const nodeList = document.querySelectorAll('div')
+    it('should return null stringified when null is passed', () => {
+      const defaultType = {
+        toggle: 'boolean',
+        parent: '(null|element)'
+      }
+      const config = {
+        toggle: true,
+        parent: null
+      }
 
-      expect(Array.isArray(nodeList)).toEqual(false)
-      expect(Array.isArray(Util.makeArray(nodeList))).toEqual(true)
+      Util.typeCheckConfig(namePlugin, config, defaultType)
+      expect().nothing()
     })
 
-    it('should return an empty array if the nodeList is undefined', () => {
-      expect(Util.makeArray(null)).toEqual([])
-      expect(Util.makeArray(undefined)).toEqual([])
+    it('should return undefined stringified when undefined is passed', () => {
+      const defaultType = {
+        toggle: 'boolean',
+        parent: '(undefined|element)'
+      }
+      const config = {
+        toggle: true,
+        parent: undefined
+      }
+
+      Util.typeCheckConfig(namePlugin, config, defaultType)
+      expect().nothing()
     })
   })
 
@@ -365,18 +380,37 @@ describe('Util', () => {
       expect(Util.getjQuery()).toEqual(fakejQuery)
     })
 
-    it('should not return jQuery object when present if data-no-jquery', () => {
-      document.body.setAttribute('data-no-jquery', '')
+    it('should not return jQuery object when present if data-bs-no-jquery', () => {
+      document.body.setAttribute('data-bs-no-jquery', '')
 
       expect(window.jQuery).toEqual(fakejQuery)
       expect(Util.getjQuery()).toEqual(null)
 
-      document.body.removeAttribute('data-no-jquery')
+      document.body.removeAttribute('data-bs-no-jquery')
     })
 
     it('should not return jQuery if not present', () => {
       window.jQuery = undefined
       expect(Util.getjQuery()).toEqual(null)
+    })
+  })
+
+  describe('onDOMContentLoaded', () => {
+    it('should execute callback when DOMContentLoaded is fired', () => {
+      const spy = jasmine.createSpy()
+      spyOnProperty(document, 'readyState').and.returnValue('loading')
+      Util.onDOMContentLoaded(spy)
+      window.document.dispatchEvent(new Event('DOMContentLoaded', {
+        bubbles: true,
+        cancelable: true
+      }))
+      expect(spy).toHaveBeenCalled()
+    })
+
+    it('should execute callback if readyState is not "loading"', () => {
+      const spy = jasmine.createSpy()
+      Util.onDOMContentLoaded(spy)
+      expect(spy).toHaveBeenCalled()
     })
   })
 })
